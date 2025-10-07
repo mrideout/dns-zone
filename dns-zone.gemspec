@@ -19,7 +19,7 @@ spec = Gem::Specification.new do |s|
   #s.default_executable  = 'dns-zone'
 
   # min ruby version
-  s.required_ruby_version = ::Gem::Requirement.new(">= 2.0")
+  s.required_ruby_version = ::Gem::Requirement.new(">= 2.4")
 
   # cross platform gem dependencies
   #s.add_dependency('gli')
@@ -27,7 +27,7 @@ spec = Gem::Specification.new do |s|
   s.add_development_dependency('bundler',        '>= 1.0')
   s.add_development_dependency('rake',           '>= 9.0')
   s.add_development_dependency('minitest',       '~> 5.0')
-  s.add_development_dependency('simplecov',      '~> 0.7.1')
+  s.add_development_dependency('simplecov',      '>= 0.17')
   s.add_development_dependency('yard',           '~> 0.8')
   s.add_development_dependency('inch',           '~> 0.6')
   s.add_development_dependency('guard-minitest', '~> 2.0')
