@@ -24,7 +24,7 @@ module DNS
       def self.load(string, options = {})
         # strip comments, unless its escaped.
         # skip semicolons within "quote segments" (TXT records)
-        string.gsub!(/((?<!\\);)(?=(?:[^"]|"[^"]*")*$).*/o, "")
+        string = string.gsub(/((?<!\\);)(?=(?:[^"]|"[^"]*")*$).*/o, "")
 
         captures = string.match(REGEX_RR)
         return nil unless captures
