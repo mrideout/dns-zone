@@ -24,7 +24,7 @@ spec = Gem::Specification.new do |s|
   # cross platform gem dependencies
   #s.add_dependency('gli')
   #s.add_dependency('paint')
-  s.add_development_dependency('bundler',        '~> 1.0')
+  s.add_development_dependency('bundler',        '>= 1.0')
   s.add_development_dependency('rake',           '>= 9.0')
   s.add_development_dependency('minitest',       '~> 5.0')
   s.add_development_dependency('simplecov',      '~> 0.7.1')
