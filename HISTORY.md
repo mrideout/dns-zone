@@ -1,5 +1,14 @@
 ## HEAD
 
+* Add support for RR Type: CAA (RFC 8659)
+* Add Ruby 3.4 compatibility
+* Fix frozen string literal warnings by avoiding in-place string mutations
+* Update minimum Ruby version to 2.4 (from 2.0)
+* Update SimpleCov dependency to >= 0.17 (from ~> 0.7.1)
+* Update Bundler dependency to >= 1.0 (from ~> 1.0) to allow modern versions
+* Update Travis CI config to test Ruby 2.4-3.4
+* Fix deprecated Minitest assertion (use assert_nil instead of assert_equal nil)
+
 ## 0.3.1 (2015-12-23)
 
 * Fix edge case when zone file has multiple `ORIGIN` directives.

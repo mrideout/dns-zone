@@ -59,7 +59,7 @@ module DNS
         content << rr.dump
       end
 
-      content.join("\n") << "\n"
+      content.join("\n") + "\n"
     end
 
     # Generates pretty output of the zone and its records.
@@ -75,7 +75,7 @@ module DNS
         last_type = rr.type
       end
 
-      content.join("\n") << "\n"
+      content.join("\n") + "\n"
     end
 
     # Load the provided zone file data into a new DNS::Zone object.
@@ -132,7 +132,7 @@ module DNS
 
       entries = []
       mode = :line
-      entry = ''
+      entry = String.new
 
       parentheses_ref_count = 0
 
@@ -140,7 +140,7 @@ module DNS
         # strip comments unless escaped
         # strip comments, unless its escaped.
         # skip semicolons within "quote segments" (TXT records)
-        line = line.gsub(/((?<!\\);)(?=(?:[^"]|"[^"]*")*$).*/o, "").chomp
+        line = line.dup.gsub(/((?<!\\);)(?=(?:[^"]|"[^"]*")*$).*/o, "").chomp
 
         next if line.gsub(/\s+/, '').empty?
 
@@ -175,7 +175,7 @@ module DNS
             #entries << entry
           end
           entries << entry
-          entry = ''
+          entry = String.new
         end
 
       end

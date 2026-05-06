@@ -64,7 +64,7 @@ class DNS::Zone::RR::Record
   def load_general_and_get_rdata(string, options = {})
     # strip comments, unless its escaped.
     # skip semicolons within "quote segments" (TXT records)
-    string.gsub!(/((?<!\\);)(?=(?:[^"]|"[^"]*")*$).*/o, "")
+    string = string.gsub(/((?<!\\);)(?=(?:[^"]|"[^"]*")*$).*/o, "")
 
     captures = string.match(DNS::Zone::RR::REGEX_RR)
     return nil unless captures
