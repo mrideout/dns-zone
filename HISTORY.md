@@ -1,5 +1,6 @@
 ## HEAD
 
+* Add support for RR Type: CAA (RFC 8659)
 * Add Ruby 3.4 compatibility
 * Fix frozen string literal warnings by avoiding in-place string mutations
 * Update minimum Ruby version to 2.4 (from 2.0)

@@ -36,6 +36,16 @@ class RRTest < DNS::Zone::TestCase
     assert_equal 't=y; o=~;', rr.text
   end
 
+  def test_load_caa_rr
+    rr = DNS::Zone::RR.load('example.com. IN CAA 0 issue "letsencrypt.org"')
+    assert_instance_of DNS::Zone::RR::CAA, rr, 'should be instance of CAA RR'
+    assert_equal 'example.com.', rr.label
+    assert_equal 'CAA', rr.type
+    assert_equal 0, rr.flag
+    assert_equal 'issue', rr.property_tag
+    assert_equal 'letsencrypt.org', rr.property_value
+  end
+
   def test_load_a_rr_with_options_hash
     rr = DNS::Zone::RR.load(' IN A 10.2.3.1', { last_label: 'www' })
     assert_equal 'www', rr.label
