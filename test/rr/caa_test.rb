@@ -54,6 +54,15 @@ class RR_CAA_Test < DNS::Zone::TestCase
     assert_equal 'ca.example.net; account=12345', rr.property_value
   end
 
+  # RFC 8659 ABNF: tag = (ALPHA / DIGIT) *( *("-") (ALPHA / DIGIT))
+  # Hyphens are permitted in property tags between alphanumerics.
+  def test_load_rr__caa_property_tag_with_hyphen
+    rr = DNS::Zone::RR::CAA.new.load('example.com. IN CAA 0 issue-critical "ca.example.net"')
+    assert_equal 0, rr.flag
+    assert_equal 'issue-critical', rr.property_tag
+    assert_equal 'ca.example.net', rr.property_value
+  end
+
   def test_load_rr__caa_missing_quotes_returns_nil
     rr = DNS::Zone::RR::CAA.new.load('example.com. IN CAA 0 issue letsencrypt.org')
     assert_nil rr

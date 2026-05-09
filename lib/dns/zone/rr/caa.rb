@@ -10,7 +10,7 @@ class DNS::Zone::RR::CAA < DNS::Zone::RR::Record
 
   REGEX_CAA_RDATA = %r{
     (?<flag>\d+)\s+
-    (?<property_tag>[A-Za-z0-9]+)\s+
+    (?<property_tag>[A-Za-z0-9](?:-*[A-Za-z0-9])*)\s+
     "(?<property_value>#{DNS::Zone::RR::REGEX_STRING})"\s*
   }mx
 
