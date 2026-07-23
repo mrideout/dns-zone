@@ -7,7 +7,7 @@ module DNS
 
       REGEX_TTL = /\d+[wdmhs]?/i
       REGEX_KLASS = /(?<klass>IN)?/i
-      REGEX_TYPE = /(?<type>A|AAAA|CAA|CDNSKEY|CDS|CNAME|DLV|DNSKEY|DS|HINFO|MX|NAPTR|NS|NSEC|NSEC3|NSEC3PARAM|RRSIG|SOA|SPF|SRV|SSHFP|TXT|PTR)\s{1}/i
+      REGEX_TYPE = /(?<type>A|AAAA|CAA|CDNSKEY|CDS|CNAME|DLV|DNSKEY|DS|HINFO|HTTPS|MX|NAPTR|NS|NSEC|NSEC3|NSEC3PARAM|RRSIG|SOA|SPF|SRV|SSHFP|SVCB|TXT|PTR)\s{1}/i
       REGEX_RR = /^(?<label>\S+|\s{1})\s*(?<ttl>#{REGEX_TTL})?\s*#{REGEX_KLASS}\s*#{REGEX_TYPE}\s*(?<rdata>[\s\S]*)$/i
       REGEX_DOMAINNAME = /\S+\.?/i
       REGEX_STRING = /((?:[^"\\]+|\\.)*)/
@@ -40,6 +40,7 @@ module DNS
         when 'DNSKEY'      then DNSKEY.new.load(string, options)
         when 'DS'          then DS.new.load(string, options)
         when 'HINFO'       then HINFO.new.load(string, options)
+        when 'HTTPS'       then HTTPS.new.load(string, options)
         when 'MX'          then MX.new.load(string, options)
         when 'NAPTR'       then NAPTR.new.load(string, options)
         when 'NS'          then NS.new.load(string, options)
@@ -52,6 +53,7 @@ module DNS
         when 'SPF'         then SPF.new.load(string, options)
         when 'SRV'         then SRV.new.load(string, options)
         when 'SSHFP'       then SSHFP.new.load(string, options)
+        when 'SVCB'        then SVCB.new.load(string, options)
         when 'TXT'         then TXT.new.load(string, options)
         else
           raise 'Unknown or unsupported RR Type'          
@@ -70,6 +72,7 @@ module DNS
       autoload :DNSKEY,     'dns/zone/rr/dnskey'
       autoload :DS,         'dns/zone/rr/ds'
       autoload :HINFO,      'dns/zone/rr/hinfo'
+      autoload :HTTPS,      'dns/zone/rr/https'
       autoload :MX,         'dns/zone/rr/mx'
       autoload :NAPTR,      'dns/zone/rr/naptr'
       autoload :NS,         'dns/zone/rr/ns'
@@ -82,6 +85,7 @@ module DNS
       autoload :SPF,        'dns/zone/rr/spf'
       autoload :SRV,        'dns/zone/rr/srv'
       autoload :SSHFP,      'dns/zone/rr/sshfp'
+      autoload :SVCB,       'dns/zone/rr/svcb'
       autoload :TXT,        'dns/zone/rr/txt'
     end
 
