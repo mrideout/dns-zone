@@ -154,9 +154,9 @@ module DNS
         has_parentheses = parentheses > 0
 
         if has_quotes
-          character_strings = entry.scan(/("(?:[^"\\]+|\\.)*")/).join(' ')
-          without = entry.gsub(/"((?:[^"\\]+|\\.)*)"/, '')
-          parentheses_ref_count = without.count('(') - without.count(')')
+          # Mask quoted strings so parens inside them don't affect the balance.
+          masked = entry.gsub(/"(?:[^"\\]+|\\.)*"/) { |cs| ' ' * cs.length }
+          parentheses_ref_count = masked.count('(') - masked.count(')')
         else
           parentheses_ref_count = entry.count('(') - entry.count(')')
         end
@@ -164,10 +164,19 @@ module DNS
         # are parentheses balanced?
         if parentheses_ref_count == 0
           if has_quotes
-            without.gsub!(/[()]/, '')
-            without.gsub!(/[ ]{2,}/, '  ')
-            #entries << (without + character_strings)
-            entry = (without + character_strings)
+            # Strip parens and collapse whitespace only outside quoted strings,
+            # keeping each quoted string verbatim and in place (SVCB/HTTPS bind
+            # a quoted value to its key).
+            entry = entry.gsub(/"(?:[^"\\]+|\\.)*"|[^"]+/) do |segment|
+              if segment.start_with?('"')
+                segment
+              else
+                processed = segment.gsub(/[()]/, '').gsub(/[ ]{2,}/, '  ')
+                # An all-parens segment still separated two tokens; keep a space.
+                processed.empty? ? ' ' : processed
+              end
+            end
+            entry.gsub!(/[ ]+\z/, '')
           else
             entry.gsub!(/[()]/, '')
             entry.gsub!(/[ ]{2,}/, '  ')
