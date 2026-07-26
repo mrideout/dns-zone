@@ -227,13 +227,13 @@ EOL
   def test_extract_entry_using_parentheses_but_not_crossing_line_boundary
     entries = DNS::Zone.extract_entries(%Q{maiow  IN  TXT ("part1" "part2")})
     assert_equal 1, entries.length, 'we should have 1 entry'
-    assert_equal 'maiow  IN  TXT  "part1" "part2"', entries[0], 'entry should match expected'
+    assert_equal 'maiow  IN  TXT "part1" "part2"', entries[0], 'entry should match expected'
   end
 
   def test_extract_entry_crossing_line_boundary
     entries = DNS::Zone.extract_entries(%Q{maiow1  IN  TXT ("part1"\n "part2" )})
     assert_equal 1, entries.length, 'we should have 1 entry'
-    assert_equal 'maiow1  IN  TXT  "part1" "part2"', entries[0], 'entry should match expected'
+    assert_equal 'maiow1  IN  TXT "part1" "part2"', entries[0], 'entry should match expected'
   end
 
   def test_extract_entry_soa_crossing_line_boundary
@@ -247,26 +247,81 @@ EOL
 )})
     assert_equal 1, entries.length, 'we should have 1 entry'
 
-    expected_soa = '@ IN  SOA  ns0.lividpenguin.com. luke.lividpenguin.com.  2013101406  12h  15m  3w  3h'
+    expected_soa = '@ IN  SOA  ns0.lividpenguin.com. luke.lividpenguin.com. 2013101406  12h  15m  3w  3h'
     assert_equal expected_soa, entries[0], 'entry should match expected'
   end
 
   def test_extract_entries_with_parentheses_crossing_multiple_line_boundaries
     entries = DNS::Zone.extract_entries(%Q{maiow1  IN  TXT (\n"part1"\n "part2"\n)})
     assert_equal 1, entries.length, 'we should have 1 entry'
-    assert_equal 'maiow1  IN  TXT  "part1" "part2"', entries[0], 'entry should match expected'
+    assert_equal 'maiow1  IN  TXT "part1" "part2"', entries[0], 'entry should match expected'
   end
 
   def test_extract_entries_with_legal_but_crazy_parentheses_used
     entries = DNS::Zone.extract_entries(%Q{maiow IN TXT (\n(\n("part1")\n \n("part2" \n("part3"\n)\n)\n)\n)})
     assert_equal 1, entries.length, 'we should have 1 entry'
-    assert_equal 'maiow IN TXT  "part1" "part2" "part3"', entries[0], 'entry should match expected'
+    assert_equal 'maiow IN TXT "part1" "part2" "part3"', entries[0], 'entry should match expected'
   end
 
   def test_extract_entry_with_parentheses_in_character_string
     entries = DNS::Zone.extract_entries(%Q{maiow IN TXT ("purr((maiow)")})
     assert_equal 1, entries.length, 'we should have 1 entry'
     assert_equal 'maiow IN TXT "purr((maiow)"', entries[0], 'entry should match expected'
+  end
+
+  # Removing a parenthesis must not leave a stray space behind, including in
+  # entries that also contain quoted character-strings.
+  def test_extract_entry_with_parentheses_and_quoted_string
+    entries = DNS::Zone.extract_entries(%Q{@ IN HTTPS 1 . ( alpn="h2,h3" port=443 )})
+    assert_equal 1, entries.length, 'we should have 1 entry'
+    assert_equal '@ IN HTTPS 1 . alpn="h2,h3" port=443', entries[0], 'entry should match expected'
+  end
+
+  # A quoted character-string must stay in its original position.
+  def test_extract_entry_keeps_quoted_string_in_place
+    entries = DNS::Zone.extract_entries(%Q{@ IN HTTPS 1 . alpn="h2,h3" port=443})
+    assert_equal 1, entries.length, 'we should have 1 entry'
+    assert_equal '@ IN HTTPS 1 . alpn="h2,h3" port=443', entries[0], 'entry should match expected'
+  end
+
+  def test_load_https_with_quoted_param_before_other_tokens
+    zone = DNS::Zone.load(%Q{$ORIGIN example.com.\n@ IN HTTPS 1 . alpn="h2,h3" port=443\n})
+    rr = zone.records.last
+    assert_equal 'HTTPS', rr.type
+    assert_equal 1, rr.priority
+    assert_equal '.', rr.target
+    assert_equal 'alpn="h2,h3" port=443', rr.params
+  end
+
+  def test_load_svcb_with_quoted_param_before_other_tokens
+    zone = DNS::Zone.load(%Q{$ORIGIN example.com.\n@ IN SVCB 1 . ech="AAA==" port=443\n})
+    rr = zone.records.last
+    assert_equal 'SVCB', rr.type
+    assert_equal 'ech="AAA==" port=443', rr.params
+  end
+
+  # NAPTR's unquoted `replacement` follows three quoted character-strings, so
+  # every field shifts if a quoted string moves.
+  def test_load_naptr_with_quoted_strings_before_replacement
+    zone = DNS::Zone.load(%Q{$ORIGIN example.com.\n@ IN NAPTR 100 50 "a" "z3950+N2L+N2C" "" cidserver.example.com.\n})
+    rr = zone.records.last
+    assert_equal 'NAPTR', rr.type
+    assert_equal 100, rr.order
+    assert_equal 50, rr.pref
+    assert_equal 'a', rr.flags
+    assert_equal 'z3950+N2L+N2C', rr.service
+    assert_equal '', rr.regexp
+    assert_equal 'cidserver.example.com.', rr.replacement
+  end
+
+  def test_load_naptr_crossing_line_boundary
+    zone = DNS::Zone.load(%Q{$ORIGIN example.com.\n@ IN NAPTR ( 100 50 "a"\n "z3950+N2L+N2C" ""\n cidserver.example.com. )\n})
+    rr = zone.records.last
+    assert_equal 'NAPTR', rr.type
+    assert_equal 'a', rr.flags
+    assert_equal 'z3950+N2L+N2C', rr.service
+    assert_equal '', rr.regexp
+    assert_equal 'cidserver.example.com.', rr.replacement
   end
 
 end

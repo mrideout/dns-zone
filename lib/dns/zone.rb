@@ -154,9 +154,9 @@ module DNS
         has_parentheses = parentheses > 0
 
         if has_quotes
-          character_strings = entry.scan(/("(?:[^"\\]+|\\.)*")/).join(' ')
-          without = entry.gsub(/"((?:[^"\\]+|\\.)*)"/, '')
-          parentheses_ref_count = without.count('(') - without.count(')')
+          # Mask quoted strings so parens inside them don't affect the balance.
+          masked = entry.gsub(/"(?:[^"\\]+|\\.)*"/) { |cs| ' ' * cs.length }
+          parentheses_ref_count = masked.count('(') - masked.count(')')
         else
           parentheses_ref_count = entry.count('(') - entry.count(')')
         end
@@ -164,12 +164,20 @@ module DNS
         # are parentheses balanced?
         if parentheses_ref_count == 0
           if has_quotes
-            without.gsub!(/[()]/, '')
-            without.gsub!(/[ ]{2,}/, '  ')
-            #entries << (without + character_strings)
-            entry = (without + character_strings)
+            # Quoted strings are left verbatim and in place; SVCB/HTTPS bind a
+            # quoted value to its key, so position is significant.
+            entry = entry.gsub(/"(?:[^"\\]+|\\.)*"|[^"]+/) do |segment|
+              if segment.start_with?('"')
+                segment
+              else
+                processed = strip_parentheses(segment).gsub(/[ ]{2,}/, '  ')
+                # An all-parens segment still separated two tokens.
+                processed.empty? ? ' ' : processed
+              end
+            end
+            entry.gsub!(/[ ]+\z/, '')
           else
-            entry.gsub!(/[()]/, '')
+            entry = strip_parentheses(entry)
             entry.gsub!(/[ ]{2,}/, '  ')
             entry.gsub!(/[ ]+$/, '')
             #entries << entry
@@ -181,6 +189,17 @@ module DNS
       end
 
       return entries
+    end
+
+    # Remove the parentheses used to continue an entry across a line boundary,
+    # along with the whitespace either side, so a paren that separated two
+    # tokens leaves exactly one space and one written flush leaves none.
+    #
+    # @api private
+    def self.strip_parentheses(string)
+      string.gsub(/([ \t]*)[()]+([ \t]*)/) do
+        ($1.empty? && $2.empty?) ? '' : ' '
+      end
     end
 
     private
