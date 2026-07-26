@@ -2,9 +2,7 @@
 
 * Add support for RR Types: SVCB and HTTPS (RFC 9460)
 * Fix quoted character-strings being moved to the end of an entry's RDATA, which
-  corrupted NAPTR, SVCB and HTTPS records loaded via `DNS::Zone.load`. NAPTR was
-  the worst affected: its `replacement` follows three quoted character-strings,
-  so every RDATA field was shifted along by one.
+  corrupted NAPTR records loaded via `DNS::Zone.load`.
 * `DNS::Zone.extract_entries` (private API) no longer inserts stray spaces where
   a quoted character-string or a parenthesis was removed; extracted entries now
   keep the spacing they were written with. Existing test expectations were
