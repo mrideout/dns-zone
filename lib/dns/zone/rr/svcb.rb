@@ -8,7 +8,7 @@ class DNS::Zone::RR::SVCB < DNS::Zone::RR::Record
   REGEX_SVCB_RDATA = %r{
     \A\s*
     (?<priority>\d+)\s+
-    (?<target>#{DNS::Zone::RR::REGEX_DOMAINNAME}|\.{1})
+    (?<target>#{DNS::Zone::RR::REGEX_DOMAINNAME})
     (?:\s+(?<params>\S[\s\S]*?))?
     \s*\z
   }mx

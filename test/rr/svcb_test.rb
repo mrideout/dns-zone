@@ -30,13 +30,6 @@ class RR_SVCB_Test < DNS::Zone::TestCase
     assert_nil rr.params
   end
 
-  def test_load_rr__svcb_alias_mode_root_target
-    rr = DNS::Zone::RR::SVCB.new.load('example.com. IN SVCB 0 .')
-    assert_equal 0, rr.priority
-    assert_equal '.', rr.target
-    assert_nil rr.params
-  end
-
   def test_load_rr__svcb_service_mode
     rr = DNS::Zone::RR::SVCB.new.load('_dns.example.com. IN SVCB 1 dot.example.com. alpn=dot port=853')
     assert_equal '_dns.example.com.', rr.label

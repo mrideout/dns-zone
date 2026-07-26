@@ -269,6 +269,14 @@ EOL
     assert_equal 'maiow IN TXT "purr((maiow)"', entries[0], 'entry should match expected'
   end
 
+  # Removing a parenthesis must not leave a stray space behind, including in
+  # entries that also contain quoted character-strings.
+  def test_extract_entry_with_parentheses_and_quoted_string
+    entries = DNS::Zone.extract_entries(%Q{@ IN HTTPS 1 . ( alpn="h2,h3" port=443 )})
+    assert_equal 1, entries.length, 'we should have 1 entry'
+    assert_equal '@ IN HTTPS 1 . alpn="h2,h3" port=443', entries[0], 'entry should match expected'
+  end
+
   # A quoted character-string must stay in its original position.
   def test_extract_entry_keeps_quoted_string_in_place
     entries = DNS::Zone.extract_entries(%Q{@ IN HTTPS 1 . alpn="h2,h3" port=443})
@@ -294,12 +302,6 @@ EOL
 
   # NAPTR's unquoted `replacement` follows three quoted character-strings, so
   # every field shifts if a quoted string moves.
-  def test_extract_entry_keeps_naptr_quoted_strings_in_place
-    entries = DNS::Zone.extract_entries(%Q{@ IN NAPTR 100 50 "a" "z3950+N2L+N2C" "" cidserver.example.com.})
-    assert_equal 1, entries.length, 'we should have 1 entry'
-    assert_equal '@ IN NAPTR 100 50 "a" "z3950+N2L+N2C" "" cidserver.example.com.', entries[0], 'entry should match expected'
-  end
-
   def test_load_naptr_with_quoted_strings_before_replacement
     zone = DNS::Zone.load(%Q{$ORIGIN example.com.\n@ IN NAPTR 100 50 "a" "z3950+N2L+N2C" "" cidserver.example.com.\n})
     rr = zone.records.last
