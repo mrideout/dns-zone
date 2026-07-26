@@ -247,7 +247,7 @@ EOL
 )})
     assert_equal 1, entries.length, 'we should have 1 entry'
 
-    expected_soa = '@ IN  SOA  ns0.lividpenguin.com. luke.lividpenguin.com.  2013101406  12h  15m  3w  3h'
+    expected_soa = '@ IN  SOA  ns0.lividpenguin.com. luke.lividpenguin.com. 2013101406  12h  15m  3w  3h'
     assert_equal expected_soa, entries[0], 'entry should match expected'
   end
 
@@ -290,6 +290,36 @@ EOL
     rr = zone.records.last
     assert_equal 'SVCB', rr.type
     assert_equal 'ech="AAA==" port=443', rr.params
+  end
+
+  # NAPTR's unquoted `replacement` follows three quoted character-strings, so
+  # every field shifts if a quoted string moves.
+  def test_extract_entry_keeps_naptr_quoted_strings_in_place
+    entries = DNS::Zone.extract_entries(%Q{@ IN NAPTR 100 50 "a" "z3950+N2L+N2C" "" cidserver.example.com.})
+    assert_equal 1, entries.length, 'we should have 1 entry'
+    assert_equal '@ IN NAPTR 100 50 "a" "z3950+N2L+N2C" "" cidserver.example.com.', entries[0], 'entry should match expected'
+  end
+
+  def test_load_naptr_with_quoted_strings_before_replacement
+    zone = DNS::Zone.load(%Q{$ORIGIN example.com.\n@ IN NAPTR 100 50 "a" "z3950+N2L+N2C" "" cidserver.example.com.\n})
+    rr = zone.records.last
+    assert_equal 'NAPTR', rr.type
+    assert_equal 100, rr.order
+    assert_equal 50, rr.pref
+    assert_equal 'a', rr.flags
+    assert_equal 'z3950+N2L+N2C', rr.service
+    assert_equal '', rr.regexp
+    assert_equal 'cidserver.example.com.', rr.replacement
+  end
+
+  def test_load_naptr_crossing_line_boundary
+    zone = DNS::Zone.load(%Q{$ORIGIN example.com.\n@ IN NAPTR ( 100 50 "a"\n "z3950+N2L+N2C" ""\n cidserver.example.com. )\n})
+    rr = zone.records.last
+    assert_equal 'NAPTR', rr.type
+    assert_equal 'a', rr.flags
+    assert_equal 'z3950+N2L+N2C', rr.service
+    assert_equal '', rr.regexp
+    assert_equal 'cidserver.example.com.', rr.replacement
   end
 
 end

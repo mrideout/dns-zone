@@ -1,10 +1,8 @@
 # `SVCB` resource record.
 #
-# RFC 9460. RDATA fields:
-#   - `priority`: unsigned 16-bit integer; `0` is AliasMode, anything else ServiceMode.
-#   - `target`: the TargetName domain-name.
-#   - `params`: the SvcParams (e.g. `alpn="h2,h3" port=853`) kept verbatim as one
-#     string, or `nil` when absent. They are not parsed into individual keys/values.
+# RFC 9460. `priority` 0 is AliasMode, anything else ServiceMode; `target` is the
+# TargetName. `params` holds the SvcParams verbatim as one string, or `nil` when
+# absent; they are not split into individual keys/values.
 class DNS::Zone::RR::SVCB < DNS::Zone::RR::Record
 
   REGEX_SVCB_RDATA = %r{
